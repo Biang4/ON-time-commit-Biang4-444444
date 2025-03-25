@@ -1,6 +1,6 @@
 name: Github Actions Commit
 
-#  Replase the fallowing according to your needs
+# Replace the following according to your needs
 # GITHUB_USERNMAE: 'MayoBlueSky'
 # GITHUB_REPO: 'time-commit'
 #
@@ -8,15 +8,15 @@ name: Github Actions Commit
 
 on:
   workflow_dispatch:
-  schedule:  # Everday
-    - cron: '00 00/2 * * *'  
-  repository_dispatch:  # For requests bassed commit  
+  schedule:  # Every day
+    - cron: '00 00/2 * * *'
+  repository_dispatch:  # For requests based commit
     types: start_action  # <<< WORK HERE
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.repository.owner.id == github.event.sender.id || github.event.sender.id != github.event.sender.id  
+    if: github.event.repository.owner.id == github.event.sender.id || github.event.sender.id != github.event.sender.id
 
     steps:
     - name: Getting the repo
@@ -24,20 +24,20 @@ jobs:
 
     - name: Re setting the url for `origin`
       run: |
-        git remote set-url origin https://Biang4:${{ secrets.GITHUB_TOKEN }}@github.com/Biang4/ON-time-commit-Biang4-444444.git    
+        git remote set-url origin https://Biang4:${{ secrets.GITHUB_TOKEN }}@github.com/Biang4/ON-time-commit-Biang4-444444.git
 
     - name: Adding git info
       run: |
-        git config --global user.name "Biang4"  
-        git config --global user.email "${{ secrets.EMAIL }}"  # Added email in secrets  
+        git config --global user.name "Biang4"
+        git config --global user.email "${{ secrets.EMAIL }}"  # Added email in secrets
 
-    - name: Initialize the repository if it's empty  
+    - name: Initialize the repository if it's empty
       run: |
         if [ -z "$(git rev-parse --verify HEAD 2>/dev/null)" ]; then
-          git commit --allow-empty -m "Initial commit"  
+          git commit --allow-empty -m "Initial commit"
         fi
 
-    - name: Creating an empty commit 
+    - name: Creating an empty commit
       run: |
         git commit --allow-empty -m "My amazing commit"
 
@@ -47,6 +47,14 @@ jobs:
         BRANCH=$(git symbolic-ref --short HEAD)
         echo "branch=$BRANCH" >> $GITHUB_OUTPUT
 
+    - name: Check if branch exists remotely
+      run: |
+        if ! git ls-remote --heads origin ${{ steps.branch_name.outputs.branch }} | grep -q ${{ steps.branch_name.outputs.branch }}; then
+          echo "Remote branch ${{ steps.branch_name.outputs.branch }} does not exist. Creating it..."
+          git push origin HEAD:${{ steps.branch_name.outputs.branch }}
+        fi
+
     - name: Finally pushing the repo
       run: |
         git push origin ${{ steps.branch_name.outputs.branch }}
+    
